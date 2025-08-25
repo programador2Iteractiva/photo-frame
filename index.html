@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cámara con Marco Personalizado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para el botón de subir archivo */
+        .file-input-button {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .file-input-button:hover {
+            background-color: #4338ca;
+        }
+        #frame-upload {
+            display: none;
+        }
+        /* Asegura que el video se muestre como un espejo, que es lo intuitivo para una selfie */
+
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl mx-auto bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+        <h1 class="text-2xl font-bold text-center p-6 bg-gray-900">Cámara con Marco Personalizado</h1>
+
+        <!-- Contenedor de la cámara y el marco -->
+        <div id="camera-container" class="relative bg-black flex items-center justify-center aspect-video">
+            <video id="camera-feed" playsinline autoplay class="w-full h-full object-cover"></video>
+            <img id="frame-overlay" src="" class="absolute top-0 left-0 w-full h-full object-contain pointer-events-none hidden" alt="Marco Superpuesto">
+            <div id="camera-error" class="absolute inset-0 flex items-center justify-center text-center p-4 bg-black bg-opacity-70 hidden">
+                <p>No se pudo acceder a la cámara. <br>Por favor, asegúrate de haber concedido los permisos necesarios en tu navegador.</p>
+            </div>
+        </div>
+
+        <!-- Controles de la aplicación -->
+        <div class="p-6 space-y-6">
+            <div class="text-center">
+                <label for="frame-upload" class="file-input-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    Elegir Marco (PNG)
+                </label>
+                <input type="file" id="frame-upload" accept="image/png">
+                <p id="frame-name" class="text-sm text-gray-400 mt-2">Ningún archivo seleccionado.</p>
+            </div>
+
+            <button id="capture-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Tomar Foto
+            </button>
+        </div>
+
+        <!-- Sección de resultados -->
+        <div id="result-container" class="p-6 border-t border-gray-700 hidden">
+            <h2 class="text-xl font-semibold text-center mb-4">¡Foto Capturada!</h2>
+            <div class="flex justify-center mb-4">
+                <img id="result-photo" class="rounded-lg shadow-lg max-w-full h-auto" alt="Foto capturada con marco">
+            </div>
+            <a id="download-btn" href="#" download="foto-con-marco.png" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-200 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Descargar Foto
+            </a>
+        </div>
+    </div>
+
+    <!-- Canvas oculto para procesar la imagen -->
+    <canvas id="capture-canvas" class="hidden"></canvas>
+
+    <script>
+        // Obtener elementos del DOM
+        const video = document.getElementById('camera-feed');
+        const frameOverlay = document.getElementById('frame-overlay');
+        const frameUpload = document.getElementById('frame-upload');
+        const frameName = document.getElementById('frame-name');
+        const captureBtn = document.getElementById('capture-btn');
+        const resultContainer = document.getElementById('result-container');
+        const resultPhoto = document.getElementById('result-photo');
+        const downloadBtn = document.getElementById('download-btn');
+        const canvas = document.getElementById('capture-canvas');
+        const cameraError = document.getElementById('camera-error');
+        const context = canvas.getContext('2d');
+
+        // --- 1. Iniciar la cámara ---
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'user', // 'user' para selfie, 'environment' para trasera
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Error al acceder a la cámara: ", err);
+                cameraError.classList.remove('hidden');
+            }
+        }
+
+        // --- 2. Manejar la subida del marco ---
+        frameUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && file.type === "image/png") {
+                const frameURL = URL.createObjectURL(file);
+                frameOverlay.src = frameURL;
+                frameOverlay.classList.remove('hidden');
+                frameName.textContent = file.name;
+                captureBtn.disabled = false;
+                resultContainer.classList.add('hidden');
+            } else {
+                frameOverlay.src = '';
+                frameOverlay.classList.add('hidden');
+                frameName.textContent = 'Por favor, selecciona un archivo PNG.';
+                captureBtn.disabled = true;
+            }
+        });
+
+        // --- 3. Capturar la foto ---
+        captureBtn.addEventListener('click', () => {
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+            canvas.width = videoWidth;
+            canvas.height = videoHeight;
+
+            // --- CORRECCIÓN ---
+            // El preview del video de la cámara frontal se muestra como un espejo para que sea intuitivo.
+            // Sin embargo, la imagen real que se captura no está invertida.
+            // Para que la foto final se guarde correctamente (sin el efecto espejo),
+            // simplemente dibujamos la imagen del video directamente en el canvas, sin transformaciones.
+            
+            // 1. Dibujar la imagen del video tal cual viene de la cámara (sin invertir).
+            context.drawImage(video, 0, 0, videoWidth, videoHeight);
+            
+            // 2. Dibujar el marco encima de la imagen del video.
+            context.drawImage(frameOverlay, 0, 0, videoWidth, videoHeight);
+
+            const dataUrl = canvas.toDataURL('image/png');
+
+            resultPhoto.src = dataUrl;
+            downloadBtn.href = dataUrl;
+            resultContainer.classList.remove('hidden');
+            
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Iniciar la cámara cuando la página se cargue
+        startCamera();
+    </script>
+</body>
+</html>
