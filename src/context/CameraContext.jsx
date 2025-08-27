@@ -16,9 +16,10 @@ export const CameraProvider = ({ children }) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: 'user',
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          aspectRatio: { ideal: 16 / 9 }
         },
       });
       if (videoRef.current) {
@@ -57,11 +58,29 @@ export const CameraProvider = ({ children }) => {
     const context = canvas.getContext('2d');
     
     const { videoWidth, videoHeight } = video;
-    canvas.width = videoWidth;
-    canvas.height = videoHeight;
+    
+    const isPortrait = videoHeight > videoWidth;
+
+    if (isPortrait) {
+        canvas.width = videoHeight;
+        canvas.height = videoWidth;
+    } else {
+        canvas.width = videoWidth;
+        canvas.height = videoHeight;
+    }
+    
+    context.save(); 
+
+    if (isPortrait) {
+        context.translate(canvas.width, 0);
+        context.rotate(Math.PI / 2);
+    }
 
     context.drawImage(video, 0, 0, videoWidth, videoHeight);
-    context.drawImage(frameImageRef.current, 0, 0, videoWidth, videoHeight);
+    
+    context.restore();
+
+    context.drawImage(frameImageRef.current, 0, 0, canvas.width, canvas.height);
 
     const dataUrl = canvas.toDataURL('image/png');
     setCapturedImage(dataUrl);
