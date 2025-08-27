@@ -6,11 +6,11 @@ const CameraView = () => {
   const frameSrc = frameFile ? URL.createObjectURL(frameFile) : null;
 
   return (
-    <div id="camera-container" className="relative bg-black flex items-center justify-center aspect-video">
-      <video id="camera-feed" ref={videoRef} playsInline autoPlay className="w-full h-full object-cover"></video>
+    <div id="camera-container" className="relative bg-black flex items-center justify-center">
+      <video id="camera-feed" ref={videoRef} playsInline autoPlay className="w-2/3 md:w-full h-full object-cover"></video>
       
       {frameSrc && (
-        <img src={frameSrc} className="absolute top-0 left-0 w-full h-full object-contain pointer-events-none" alt="Marco Superpuesto" />
+        <img src={frameSrc} className="absolute top-0 left-0 w-full h-full object-contain pointer-events-none -rotate-90 md:rotate-0" alt="Marco Superpuesto" />
       )}
       
       {cameraError && (
