@@ -1,10 +1,16 @@
 import React from "react";
 import { useCameraContext } from "../context/CameraContext";
+
+// La ruta al marco por defecto en la carpeta 'public'
 const defaultFrameSrc = "/assets/default.png";
 
 const CameraView = () => {
   const { videoRef, frameFile, cameraError } = useCameraContext();
-  const frameSrc = frameFile ? URL.createObjectURL(frameFile) : null;
+
+  // Se determina si 'frameFile' es un archivo subido por el usuario.
+  // Solo se usará 'createObjectURL' si es un archivo válido.
+  const isUserFile = frameFile && !frameFile.isDefault;
+  const frameSrc = isUserFile ? URL.createObjectURL(frameFile) : defaultFrameSrc;
 
   return (
     <div
@@ -19,19 +25,11 @@ const CameraView = () => {
         className="w-2/3 md:w-full h-full object-cover"
       ></video>
 
-      {frameSrc ? (
-        <img
-          src={frameSrc}
-          className="absolute top-0 left-0 w-full h-full object-contain pointer-events-none -rotate-90 md:rotate-0"
-          alt="Marco Default"
-        />
-      ) : (
-        <img
-          src={defaultFrameSrc}
-          className="absolute top-0 left-0 w-full h-full object-contain pointer-events-none -rotate-90 md:rotate-0"
-          alt="Marco Superpuesto"
-        />
-      )}
+      <img
+        src={frameSrc}
+        className="absolute top-0 left-0 w-full h-full object-contain pointer-events-none -rotate-90 md:rotate-0"
+        alt={isUserFile ? "Marco Superpuesto" : "Marco por Defecto"}
+      />
 
       {cameraError && (
         <div className="absolute inset-0 flex items-center justify-center text-center p-4 bg-black bg-opacity-70">

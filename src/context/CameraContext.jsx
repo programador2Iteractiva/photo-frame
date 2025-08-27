@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 
 const CameraContext = createContext(null);
+// Se define la ruta al marco por defecto que está en la carpeta 'public'
+const defaultFrameSrc = "/assets/default.png"; 
 
 export const CameraProvider = ({ children }) => {
-  const [frameFile, setFrameFile] = useState(null);
-  const [frameName, setFrameName] = useState('Ningún archivo seleccionado.');
+  // 1. Se inicializa 'frameFile' con un objeto para que el botón de capturar esté activo.
+  const [frameFile, setFrameFile] = useState({ isDefault: true }); 
+  const [frameName, setFrameName] = useState('Marco por defecto'); // Mensaje inicial
   const [capturedImage, setCapturedImage] = useState(null);
   const [cameraError, setCameraError] = useState(null);
 
@@ -33,25 +36,36 @@ export const CameraProvider = ({ children }) => {
 
   useEffect(() => {
     startCamera();
+    
+    // 2. Se carga la imagen del marco por defecto al iniciar
+    if (frameImageRef.current) {
+      frameImageRef.current.src = defaultFrameSrc;
+    }
+
   }, [startCamera]);
 
   const handleFrameChange = (event) => {
     const file = event.target.files[0];
     if (file && file.type === "image/png") {
-      setFrameFile(file);
+      setFrameFile(file); // Se actualiza con el archivo del usuario
       setFrameName(file.name);
       setCapturedImage(null);
       const reader = new FileReader();
       reader.onload = (e) => (frameImageRef.current.src = e.target.result);
       reader.readAsDataURL(file);
     } else {
-      setFrameFile(null);
-      setFrameName('Por favor, selecciona un archivo PNG válido.');
+      // Si el usuario cancela, se vuelve a cargar el marco por defecto
+      setFrameFile({ isDefault: true });
+      setFrameName('Marco por defecto');
+      if(frameImageRef.current) {
+          frameImageRef.current.src = defaultFrameSrc;
+      }
     }
   };
 
   const handleCapture = () => {
-    if (!videoRef.current || !canvasRef.current || !frameFile) return;
+    // 3. La condición ahora revisa si hay una imagen en 'frameImageRef'
+    if (!videoRef.current || !canvasRef.current || !frameImageRef.current.src) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -80,6 +94,7 @@ export const CameraProvider = ({ children }) => {
     
     context.restore();
 
+    // Dibuja la imagen que esté cargada en 'frameImageRef' (la por defecto o la del usuario)
     context.drawImage(frameImageRef.current, 0, 0, canvas.width, canvas.height);
 
     const dataUrl = canvas.toDataURL('image/png');
