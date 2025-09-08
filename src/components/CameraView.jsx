@@ -4,7 +4,7 @@ import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
 import { Camera } from "@mediapipe/camera_utils";
 
 const defaultFrameSrc = "/assets/default.png";
-const defaultBgSrc = "/assets/virtual-bg.jpeg"; // Usa tu fondo virtual aquí
+const defaultBgSrc = "/assets/virtual-bg.png"; // Usa tu fondo virtual aquí
 
 const CameraView = () => {
   const { videoRef, frameFile, cameraError } = useCameraContext();
