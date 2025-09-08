@@ -1,34 +1,36 @@
 import React from "react";
 import { useCameraContext } from "../context/CameraContext";
 
-// La ruta al marco por defecto en la carpeta 'public'
 const defaultFrameSrc = "/assets/default.png";
 
 const CameraView = () => {
   const { videoRef, frameFile, cameraError } = useCameraContext();
 
-  // Se determina si 'frameFile' es un archivo subido por el usuario.
-  // Solo se usará 'createObjectURL' si es un archivo válido.
   const isUserFile = frameFile && !frameFile.isDefault;
-  const frameSrc = isUserFile ? URL.createObjectURL(frameFile) : defaultFrameSrc;
+  const frameSrc = isUserFile
+    ? URL.createObjectURL(frameFile)
+    : defaultFrameSrc;
 
   return (
     <div
       id="camera-container"
-      className="relative bg-black flex items-center justify-center"
+      // Aspecto vertical para móvil y horizontal para escritorio
+      className="relative flex items-center justify-center w-full aspect-[9/16] md:aspect-video"
     >
       <video
         id="camera-feed"
         ref={videoRef}
         playsInline
         autoPlay
-        className="w-2/3 md:w-full h-full object-cover"
+        className="w-full h-full object-cover"
       ></video>
 
       <img
         src={frameSrc}
-        className="absolute top-0 left-0 w-full h-full object-contain pointer-events-none -rotate-90 md:rotate-0"
         alt={isUserFile ? "Marco Superpuesto" : "Marco por Defecto"}
+        // Clase para móviles: rota 90 grados y escala la imagen para que quepa en el contenedor.
+        // Clase para escritorio: elimina la rotación y la escala
+        className="absolute object-contain pointer-events-none -rotate-90 scale-[1.7777] md:rotate-0 md:scale-100"
       />
 
       {cameraError && (
