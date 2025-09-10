@@ -15,13 +15,13 @@ const Controls = () => {
       {isMobile ? (
         <button
           onClick={handleCapture}
-          disabled={!isFrameSelected}
+          // disabled={!isFrameSelected}
           className="bg-white w-26 h-26 rounded-full disabled:bg-gray-500"
         />
       ) : (
         <button
           onClick={handleCapture}
-          disabled={!isFrameSelected}
+          // disabled={!isFrameSelected}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center"
         >
           Tomar Foto
@@ -31,7 +31,7 @@ const Controls = () => {
       {isMobile ? (
         <button
           onClick={handleCapture}
-          disabled={!isFrameSelected}
+          // disabled={!isFrameSelected}
           className="bg-indigo-600 w-20 h-20 rounded-full"
         >
           <label
