@@ -28,7 +28,7 @@ const Controls = () => {
         </button>
       )}
 
-      {isMobile ? (
+      {/* {isMobile ? (
         <button
           onClick={handleCapture}
           // disabled={!isFrameSelected}
@@ -65,7 +65,7 @@ const Controls = () => {
           />
           <p className="text-sm text-gray-400 mt-2">{frameName}</p>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
