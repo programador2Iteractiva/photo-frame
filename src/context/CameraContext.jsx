@@ -9,15 +9,13 @@ import React, {
 
 const CameraContext = createContext(null);
 
-// Marcos por defecto (puedes cambiar la ruta del vertical si tienes otro PNG)
+// Cambia estas rutas a las de tus assets reales
 const defaultFrameSrcHorizontal = "/assets/default.png";
-const defaultFrameSrcVertical = "/assets/default.png";
+const defaultFrameSrcVertical = "/assets/defaultVertical.png";
 
 export const CameraProvider = ({ children }) => {
-  // Orientación seleccionada por el usuario (por defecto horizontal)
   const [orientation, setOrientation] = useState("horizontal"); // "horizontal" | "vertical"
 
-  // Dos marcos: uno para horizontal y otro para vertical
   const [frames, setFrames] = useState({
     horizontal: {
       src: defaultFrameSrcHorizontal,
@@ -33,15 +31,12 @@ export const CameraProvider = ({ children }) => {
     },
   });
 
-  // Info de la cámara / captura
   const [capturedImage, setCapturedImage] = useState(null);
   const [cameraError, setCameraError] = useState(null);
   const [isFlashing, setIsFlashing] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-
-  // Imagen del marco actual en memoria para dibujar en canvas
   const frameImageRef = useRef(new Image());
 
   const startCamera = useCallback(async () => {
@@ -51,7 +46,7 @@ export const CameraProvider = ({ children }) => {
           facingMode: "environment",
           width: { ideal: 1920 },
           height: { ideal: 1080 },
-          aspectRatio: { ideal: 16 / 9 }, // mantenemos 16:9, el lienzo se rota si eliges vertical
+          aspectRatio: { ideal: 16 / 9 },
         },
       });
       if (videoRef.current) {
@@ -65,23 +60,21 @@ export const CameraProvider = ({ children }) => {
     }
   }, []);
 
-  // Iniciar cámara y cargar imágenes por defecto
   useEffect(() => {
     startCamera();
     frameImageRef.current.src =
       orientation === "horizontal"
         ? defaultFrameSrcHorizontal
         : defaultFrameSrcVertical;
-  }, [startCamera]); // solo al montar
+  }, [startCamera]); // al montar
 
-  // Cuando cambia la orientación o los marcos, sincronizamos la imagen del marco
   useEffect(() => {
     frameImageRef.current.src = frames[orientation].src;
   }, [orientation, frames]);
 
-  // Cambiar marco (aplica al modo actual)
   const handleFrameChange = (event) => {
     const file = event.target.files && event.target.files[0];
+
     const resetToDefault = () => {
       setFrames((prev) => ({
         ...prev,
@@ -111,7 +104,6 @@ export const CameraProvider = ({ children }) => {
     }
 
     if (file.type !== "image/png") {
-      // Solo aceptamos PNG para respetar transparencias
       resetToDefault();
       return;
     }
@@ -135,12 +127,10 @@ export const CameraProvider = ({ children }) => {
     reader.readAsDataURL(file);
   };
 
-  // Capturar foto con orientación seleccionada + flash
   const handleCapture = () => {
     if (!videoRef.current || !canvasRef.current || !frameImageRef.current.src)
       return;
 
-    // Inicia flash
     setIsFlashing(true);
 
     const video = videoRef.current;
@@ -150,32 +140,28 @@ export const CameraProvider = ({ children }) => {
     const { videoWidth, videoHeight } = video;
 
     if (orientation === "vertical") {
-      // Canvas en formato retrato
+      // Canvas en retrato
       canvas.width = videoHeight;
       canvas.height = videoWidth;
 
-      // Dibuja video rotado 90° (igual que la vista)
+      // 1) Dibuja el VIDEO rotado 90°
       context.save();
       context.translate(canvas.width, 0);
       context.rotate(Math.PI / 2);
       context.drawImage(video, 0, 0, videoWidth, videoHeight);
       context.restore();
 
-      // Dibuja marco rotado 90°
-      context.save();
-      context.translate(canvas.width, 0);
-      context.rotate(Math.PI / 2);
-      context.drawImage(frameImageRef.current, 0, 0, videoWidth, videoHeight);
-      context.restore();
+      // 2) Dibuja el MARCO SIN rotación (ya viene en vertical)
+      context.drawImage(frameImageRef.current, 0, 0, canvas.width, canvas.height);
     } else {
-      // Canvas en formato paisaje
+      // Canvas en paisaje
       canvas.width = videoWidth;
       canvas.height = videoHeight;
 
-      // Dibuja video sin rotación
+      // Video sin rotar
       context.drawImage(video, 0, 0, videoWidth, videoHeight);
 
-      // Dibuja marco sin rotación
+      // Marco sin rotar (horizontal)
       context.drawImage(
         frameImageRef.current,
         0,
@@ -188,7 +174,6 @@ export const CameraProvider = ({ children }) => {
     const dataUrl = canvas.toDataURL("image/png");
     setCapturedImage(dataUrl);
 
-    // Apaga flash después de un momento
     setTimeout(() => setIsFlashing(false), 150);
   };
 
@@ -197,33 +182,21 @@ export const CameraProvider = ({ children }) => {
     setCapturedImage(null);
   };
 
-  // Datos expuestos al contexto
   const value = {
-    // refs
     videoRef,
     canvasRef,
-
-    // estado de cámara / captura
     capturedImage,
     cameraError,
-
-    // marcos
     frameSrc: frames[orientation].src,
     frameName: frames[orientation].name,
     frameFile:
       frames[orientation].file || {
         isDefault: frames[orientation].isDefault,
       },
-
-    // orientación y controles
     orientation,
     setOrientation,
     toggleOrientation,
-
-    // UI
     isFlashing,
-
-    // handlers
     handleFrameChange,
     handleCapture,
   };
