@@ -5,7 +5,7 @@ import { FaCamera } from "react-icons/fa";
 import { FaCameraRotate } from "react-icons/fa6";
 
 const Controls = () => {
-  const { handleCapture, orientation, toggleOrientation } = useCameraContext();
+  const { handleCapture, toggleOrientation } = useCameraContext();
   const isMobile = useIsMobile();
 
   return (
@@ -33,15 +33,16 @@ const Controls = () => {
       )}
 
       {/* Alternar orientación */}
-      <button
-        onClick={toggleOrientation}
-        className="flex justify-center items-center w-24 h-24 rounded-full border shadow active:scale-95 transition"
-        aria-label="Alternar orientación"
-        title="Alternar orientación Horizontal/Vertical"
-      >
-        <FaCameraRotate className="w-18 h-18" />
-      </button>
-
+      {!isMobile && (
+        <button
+          onClick={toggleOrientation}
+          className="flex justify-center items-center w-24 h-24 rounded-full border shadow active:scale-95 transition"
+          aria-label="Alternar orientación"
+          title="Alternar orientación Horizontal/Vertical"
+        >
+          <FaCameraRotate className="w-18 h-18" />
+        </button>
+      )}
     </div>
   );
 };

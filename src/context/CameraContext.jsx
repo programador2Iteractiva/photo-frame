@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import useIsMobile from "../hooks/useIsMobile";
 
 const CameraContext = createContext(null);
 
@@ -14,7 +15,10 @@ const defaultFrameSrcHorizontal = "/assets/default.png";
 const defaultFrameSrcVertical = "/assets/defaultVertical.png";
 
 export const CameraProvider = ({ children }) => {
-  const [orientation, setOrientation] = useState("horizontal"); // "horizontal" | "vertical"
+  const isMobile = useIsMobile();
+  const [orientation, setOrientation] = useState(
+    isMobile ? "vertical" : "horizontal"
+  ); // "horizontal" | "vertical"
 
   const [frames, setFrames] = useState({
     horizontal: {
@@ -188,10 +192,13 @@ export const CameraProvider = ({ children }) => {
   };
 
   const toggleOrientation = () => {
-    setOrientation((prev) =>
-      prev === "horizontal" ? "vertical" : "horizontal"
-    );
-    setCapturedImage(null);
+    // Si es móvil, no permitas cambiar la orientación.
+    if (!isMobile) {
+      setOrientation((prev) =>
+        prev === "horizontal" ? "vertical" : "horizontal"
+      );
+      setCapturedImage(null);
+    }
   };
 
   const value = {
