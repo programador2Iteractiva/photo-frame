@@ -8,10 +8,6 @@ const CameraView = () => {
   const containerAspect =
     orientation === "vertical" ? "aspect-[9/16]" : "aspect-video";
 
-  // El video sí rota en vertical
-  const videoRotationClass =
-    orientation === "vertical" ? "-rotate-90 scale-[1.7777]" : "rotate-0 scale-100";
-
   // El marco NO rota nunca (ya viene en la orientación correcta)
   const frameRotationClass = "rotate-0 scale-100";
 
@@ -25,7 +21,7 @@ const CameraView = () => {
         ref={videoRef}
         playsInline
         autoPlay
-        className={`w-full h-full object-cover ${videoRotationClass} transition-transform will-change-transform`}
+        className={`w-full h-full object-cover transition-transform will-change-transform`}
       ></video>
 
       <img
