@@ -143,47 +143,37 @@ export const CameraProvider = ({ children }) => {
 
     const { videoWidth, videoHeight } = video;
 
-    // if (orientation === "vertical") {
-    //   // Canvas en retrato
-    //   canvas.width = videoHeight;
-    //   canvas.height = videoWidth;
+    if (orientation === "vertical") {
+      // Canvas en retrato
+      canvas.width = videoHeight;
+      canvas.height = videoWidth;
 
-    //   // 1) Dibuja el VIDEO rotado 90°
-    //   context.save();
-    //   context.translate(canvas.width, 0);
-    //   context.rotate(Math.PI / 2);
-    //   context.drawImage(video, 0, 0, videoWidth, videoHeight);
-    //   context.restore();
+      // 1) Dibuja el VIDEO rotado 90°
+      context.save();
+      context.translate(canvas.width, 0);
+      context.rotate(Math.PI / 2);
+      context.drawImage(video, 0, 0, videoWidth, videoHeight);
+      context.restore();
 
-    //   // 2) Dibuja el MARCO SIN rotación (ya viene en vertical)
-    //   context.drawImage(frameImageRef.current, 0, 0, canvas.width, canvas.height);
-    // } else {
-    //   // Canvas en paisaje
-    //   canvas.width = videoWidth;
-    //   canvas.height = videoHeight;
+      // 2) Dibuja el MARCO SIN rotación (ya viene en vertical)
+      context.drawImage(frameImageRef.current, 0, 0, canvas.width, canvas.height);
+    } else {
+      // Canvas en paisaje
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
 
-    //   // Video sin rotar
-    //   context.drawImage(video, 0, 0, videoWidth, videoHeight);
+      // Video sin rotar
+      context.drawImage(video, 0, 0, videoWidth, videoHeight);
 
-    //   // Marco sin rotar (horizontal)
-    //   context.drawImage(
-    //     frameImageRef.current,
-    //     0,
-    //     0,
-    //     canvas.width,
-    //     canvas.height
-    //   );
-    // }
-
-    // Canvas en paisaje
-    canvas.width = videoWidth;
-    canvas.height = videoHeight;
-
-    // Video sin rotar
-    context.drawImage(video, 0, 0, videoWidth, videoHeight);
-
-    // Marco sin rotar (horizontal)
-    context.drawImage(frameImageRef.current, 0, 0, canvas.width, canvas.height);
+      // Marco sin rotar (horizontal)
+      context.drawImage(
+        frameImageRef.current,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+    }
 
     const dataUrl = canvas.toDataURL("image/png");
     setCapturedImage(dataUrl);
